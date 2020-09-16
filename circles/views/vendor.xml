@@ -1,0 +1,515 @@
+<odoo>
+    <data>
+        <!-- Add more fields in Supplierinfo from-->
+        <record id="product_supplierinfo_form_view" model="ir.ui.view">
+            <field name="name">product.supplierinfo.form.view.inherit</field>
+            <field name="model">product.supplierinfo</field>
+            <field name="inherit_id" ref="product.product_supplierinfo_form_view"/>
+            <field name="arch" type="xml">
+              <xpath expr="//form" position="replace"> 
+                <form string="Vendor Information">
+                    <sheet>
+                        <field name="image" widget='image' class="oe_avatar" options='{"preview_image": "image"}'/>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="product_name" default_focus="1" placeholder="Name" />
+                            </h1>
+                            <field name="name" context="{'res_partner_search_mode': 'supplier'}"/>
+                        </div>
+                        <div>
+                        <!-- more <field name="show_more_information_button"/> -->
+                        </div>
+                        <notebook>
+                            <page string="Basic Information" name="basic_information">
+                                <group>
+                                    <field name="description" string="Description"/>
+                                </group>
+                                <group>
+                                    <group>
+                                        <field name="product_tmpl_id" string="Product"/>
+                                        <!-- <field name="product_tmpl_id" string="Product" invisible="context.get('visible_product_tmpl_id', True)"/> -->
+                                        <field name="product_id" groups="product.group_product_variant" domain="[('product_tmpl_id', '=', product_tmpl_id)]" options="{'no_create_edit': True}"/>
+                                    </group>
+                                    <group>
+                                        <field name="product_code" help="Optional"/>
+                                    </group>
+                                    <group string="Other Information" groups="base.group_multi_company">
+                                        <field name="company_id" options="{'no_create': True}"/>
+                                    </group>
+                                </group>
+                                <group>
+                                    <field name="pricelist_ids" >
+                                        <tree editable="bottom" >
+                                            <field name="date_start" />
+                                            <field name="date_end" invisible="0"/>
+                                            <field name="fixed_price" readonly='0'/>
+                                            <field name="currency_id" readonly='0'/>
+                                            <field name="incoterm_id"/>
+                                            <field name="min_quantity"/>
+                                            <field name="max_quantity" invisible="0"/>
+                                            <field name="price_note"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                            </page>
+                            <page string="More information" name="more_information" >
+                                <group>
+                                    <group>
+                                        <label for="delay"/>
+                                        <div>
+                                            <field name="delay" class="oe_inline"/> days
+                                        </div>
+                                    </group>
+                                    <group>
+                                        <label for="capacity_current"/>
+                                            <div>
+                                            <field name="capacity_current" class="oe_inline"/> |
+                                            <field name="capacity_uom_id" class="oe_inline"/>
+                                            </div>
+                                        <label for="capacity_maximum"/>
+                                            <div>
+                                            <field name="capacity_maximum" class="oe_inline"/> |
+                                            <field name="capacity_uom_id" class="oe_inline"/>
+                                            </div>
+                                    </group>
+                                </group>
+                                <field name="userdefine_ids">
+                                    <tree string="User define fields" editable="bottom">
+                                        <field name="field_define_id"/>
+                                        <field name="field_data"/>
+                                        <field name="field_unit_id"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                          <field name="message_follower_ids" widget="mail_followers"/>
+                          <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+              </xpath>
+            </field>
+        </record>
+
+        <!-- Add more fields in Supplierinfo tree-->
+        <record id="product.product_supplierinfo_tree_view" model="ir.ui.view">
+            <field name="name">product.supplierinfo.tree.view</field>
+            <field name="model">product.supplierinfo</field>
+            <field name="arch" type="xml">
+                <tree string="Vendor Information" multi_edit="1">
+                    <field name="image" widget="image" class="oe_avatar" options='{"size": [69, 69]}' />
+                    <field name="product_name" string="Name"/>
+                    <field name="product_tmpl_id" string="Product type"/>
+                    <!-- <field name="tags" widget="many2many_tags" options="{'color_field': 'color'}"/> -->
+                    <field name="name" readonly="1"/>
+                    <field name="price_compute"/>
+                    <field name="vendor_person_in_charge"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Add more fields in Supplierinfo search-->
+        <record id="view_product_supplierinfo_filter" model="ir.ui.view">
+            <field name="name">product.supplierinfo.filter</field>
+            <field name="model">product.supplierinfo</field>
+            <field name="arch" type="xml">
+                <search string="Search Vendor's Product">
+                    <field name="product_name" string="Name"/>
+                    <field name="product_tmpl_id" string="Product type"/>
+                    <field name="vendor_criteria_search" filter_domain="[('name.vendor_evaluation_ids.criteria_id','ilike', self)]"/>
+                    <field name="incoterm_search" filter_domain="[('pricelist_ids.incoterm_id','ilike', self)]"/>
+                    <field name="pricelist_ids" string="Have price greater than" filter_domain="[('pricelist_ids.fixed_price','&gt;=', self)]"/>
+                    <field name="pricelist_ids" string="Have price less than" filter_domain="[('pricelist_ids.fixed_price','&lt;=', self)]"/>
+                    <field name="name"/>
+                    <field name="state_id" string="State in VN" domain="[('country_id', '=', 'Vietnam')]"/>
+                    <group expand="0" string="Group By">
+                        <filter name="product_tmpl_id" string="Product type" context="{'group_by':'product_tmpl_id'}"/>
+                        <separator/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- define action view in Supplierinfo -->
+        <record id="product_supplierinfo_type_action" model="ir.actions.act_window">
+            <field name="name">Vendor's Products</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">product.supplierinfo</field>
+            <field name="view_mode">tree,form,kanban</field>
+            <field name="context">{'visible_product_tmpl_id':False}</field>
+            <field name="search_view_id" ref="view_product_supplierinfo_filter"/>
+        </record>
+
+        <act_window
+            id="action_product_supplierinfo_form"
+            name ="Create product"
+            res_model="product.supplierinfo"
+            view_id="product_supplierinfo_form_view"
+            view_mode="form"
+            target="new" />
+
+        <!-- Add more fields in Product form -->
+        <record id="product_template_only_form_view" model="ir.ui.view">
+            <field name="name">product.template.product.form</field>
+            <field name="model">product.template</field>
+            <field name="mode">primary</field>
+            <field name="priority" eval="7" />
+            <field name="inherit_id" ref="product.product_template_only_form_view"/>
+            <field name="arch" type="xml">
+                <page name="invoicing" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </page>
+                <group name="group_standard_price" position="replace">
+                 <group name="group_standard_price">
+                    <field name="company_id" groups="base.group_multi_company"
+                        options="{'no_create': True}"/>
+                    <field name="uom_id" groups="uom.group_uom" options="{'no_create': True}"/>
+                  </group> 
+                </group>
+
+            </field>
+        </record>
+
+        <!-- Overwrite base geolocalize view to hide Partner Assignation from normal user -->
+        <record id="base_geolocalize.view_crm_partner_geo_form" model="ir.ui.view">
+            <field name="name">res.partner.geolocation.inherit</field>
+            <field name="model">res.partner</field>
+            <field name="groups_id" eval="[(4, ref('purchase.group_purchase_manager'))]"/>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook[last()]" position="inside">
+                    <page string="Partner Assignation" name="geo_location" groups="circles.group_full_purchase_menu">
+                        <!-- something to do here -->
+                        <group colspan="2" col="2">
+                            <separator string="Geolocation" colspan="2"/>
+                            <button
+                                string="Geolocate"
+                                name="geo_localize"
+                                colspan="2"
+                                icon="fa-check"
+                                type="object"/>
+                            <div>
+                                <span> Is geo_localize updated : </span>
+                                <field name="is_geo_localize_updated"/>
+                            </div>
+                            <div>
+                                <span class="oe_inline"> ( On  </span>
+                                <field name="date_localization" nolabel="1" class="oe_inline"/>
+                                <span> : Lat : </span>
+                                <field name="partner_latitude" nolabel="1" class="oe_inline"/>
+                                <span> ;  Long:  </span>
+                                <field name="partner_longitude" nolabel="1" class="oe_inline"/>
+                                <span>) </span>
+                            </div>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+        
+
+        <!-- Add more fields in Vendor form -->
+        <record id="view_partner_property_form" model="ir.ui.view">
+            <field name="name">res.partner.property.form.inherit</field>
+            <field name="model">res.partner</field>
+            <field name="priority">100</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="groups_id" eval="[(5,)]"/>
+            <field name="arch" type="xml">
+                <field name="category_id" position="replace">
+                    <field name="category_id" widget="many2many_tags" options="{'no_create_edit': True, 'color_field': 'color'}"/>
+                </field>
+
+                <xpath expr="//field[@name='name']" position="attributes">
+                    <attribute name="widget">gplaces_autocomplete</attribute>
+                </xpath>
+
+                <field name="street" position="replace">
+                    <field name="street" widget="gplaces_address_autocomplete"/>
+                </field>
+                
+                <div name="button_box" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </div>
+
+                <page name="sales_purchases" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </page>
+
+                <page name="accounting" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </page>
+
+                <field name="vat" position="after">
+                    <field name="user_id" string="Person in charge" />
+                    <field name="description"/>
+                </field>
+
+                <field name="zip" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
+
+                <field name="category_id" position="after">
+                    <field name="num_empl" placeholder="A - B, ex: 30 - 34 or 30"/>
+                    <field name="established_date" placeholder="YYYY/MM/DD, ex: 2019/12/30, or 2019/12 or 2019"/>
+                    <label for="capacity_current"/>
+                    <div class="o_row">
+                        <field name="capacity_current" class="oe_inline"/> |
+                        <field name="capacity_uom_id" class="oe_inline"/>
+                    </div>
+                </field>
+
+                <field name="category_id" position="before">
+                    <field name="industries_ids" widget="many2many_tags" options="{'no_create_edit': True, 'color_field': 'color'}"/>
+                </field>
+                    
+                <!-- change default contact type -->
+                <field name="child_ids" position="attributes">
+                    <attribute name="context">{'default_parent_id': active_id, 'default_street': street, 'default_street2': street2, 'default_city': city, 'default_state_id': state_id, 'default_zip': zip, 'default_country_id': country_id, 'default_lang': lang, 'default_user_id': user_id, 'default_type': 'contact'}</attribute>
+                </field>
+
+
+                <xpath expr="//field[@name='name']" position="attributes">
+                    <attribute name="widget">gplaces_autocomplete</attribute>
+                </xpath>
+
+                <page name="internal_notes" position="before">
+                    <page string="Products" name="product" >
+                        <button name="%(action_product_supplierinfo_form)d" string="Create product" class="oe_right btn-secondary"
+                                type="action" context="{'default_name': id}"/>
+                        <field name="product_ids" context="{'default_name': id}">
+                            <tree string="Product list" default_order='id desc' >
+                                <field name="company_id" invisible="1"/>
+                                <field name="image_resize" widget="image" string="Product image"/>
+                                <field name="product_name" string="Name"/>
+                                <field name="product_tmpl_id" string="Product"/>
+                                <field name="price_compute"/>
+                            </tree>
+                        </field>
+                    </page>
+                    <page string="Evaluation" name="eval" >
+                        <field name="vendor_evaluation_ids">
+                            <tree string="Evaluation list" editable="bottom">
+                                <field name="criteria_id" options="{'no_create_edit': True}"/>
+                                <field name="attachment_ids" widget="many2many_binary" class="oe_inline"/>
+                                <field name="data"/> 
+                                <field name="rating"/>
+                                <field name="is_verified"/>
+                            </tree>
+                        </field>
+                    </page>
+                </page>
+            </field>
+        </record>
+
+        <!-- Add more search in Vendor search -->
+        <record id="res_partner_view_search2" model="ir.ui.view">
+            <field name="name">res.partner.search.inherit</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_res_partner_filter"/>
+            <field name="arch" type="xml">
+                
+                <xpath expr="//field[@name='parent_id']" position="replace"/>
+
+                <xpath expr="//field[@name='user_id']" position="before">
+                    <field name="state_id" string="State in VN" domain="[('country_id', '=', 'Vietnam')]"/>
+                    <field name="vat"/>
+                    <field name="industries_ids"/>
+                    <field name="num_empl" string="Have employee greater than" filter_domain="[('num_empl','&gt;=', self)]"/>
+                    <field name="num_empl" string="Have employee less than" filter_domain="[('num_empl','&lt;=', self)]"/>
+                    <field name="vendor_evaluation_search" filter_domain="[('vendor_evaluation_ids.criteria_id','ilike', self)]"/>
+                </xpath>
+                <xpath expr="//filter[@name='group_country']" position="after">
+                    <filter name="group_state" string="State" context="{'group_by': 'state_id'}"/>
+                </xpath>
+                <xpath expr="//filter[@name='salesperson']" position="replace">
+                    <filter name="group_state" string="PIC" context="{'group_by': 'user_id'}"/>
+                </xpath>
+
+                <xpath expr="//filter[@name='type_company']" position="replace"/>
+                <xpath expr="//filter[@name='type_person']" position="replace"/>
+                <xpath expr="//filter[@name='customer']" position="replace"/>
+                <xpath expr="//filter[@name='supplier']" position="replace"/>
+            </field>
+        </record>
+
+        <!-- Vendor window list -->
+            <record id="view_partner_property_tree" model="ir.ui.view">
+                <field name="name">res.partner.property.form.inherit</field>
+                <field name="model">res.partner</field>
+                <field name="priority">100</field>
+                <field name="inherit_id" ref="base.view_partner_tree"/>
+                <field name="groups_id" eval="[(5,)]"/>
+                <field name="arch" type="xml">
+                    <xpath expr="//tree" position="replace">
+                        <tree default_order='write_date desc'>
+                            <field name="write_date" optional="show"/>
+                            <field name="vat" optional="show"/>
+                            <field name="display_name" string="Name"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="industries_ids" widget="many2many_tags" options="{'no_create_edit': True, 'color_field': 'color'}" optional="show"/>
+                            <field name="vendor_evaluation_ids" widget="many2many_tags" optional="show"/>
+                            <field name="category_id" widget="many2many_tags" options="{'color_field': 'color', 'no_create_edit': True}" optional="show"/>
+                            <field name="state_id" optional="show"/>
+                            <field name="user_id" optional="show"/>
+
+                            <field name="capacity_compute" optional="show"/>
+                            <field name="established_date_compute" optional="show"/>
+                            <field name="num_empl" optional="show"/>
+
+                            <field name="comment" optional="hide"/>
+                            <field name="phone" class="o_force_ltr" optional="hide"/>
+                            <field name="email" optional="hide"/>
+                            <field name="country_id" optional="hide"/>
+                        </tree>
+                    </xpath>
+                </field>
+            </record>
+        <!-- Vendor window action -->
+        <record id="res_partner_action_supplier" model="ir.actions.act_window">
+            <field name="name">Vendors</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">res.partner</field>
+            <field name="view_mode">tree,kanban,form,map</field>
+            <field name="context">{'res_partner_search_mode': 'supplier', 'default_is_company': True, 'default_supplier_rank': 1, 'default_country_id':241, 'default_capacity_uom_id': 5, 'default_user_id':uid}</field>
+            <field name="domain">[('supplier_rank','>', 0), ('is_company', '=', True)]</field>
+        </record>
+
+        <!-- Vendor Criteria list view -->
+        <record id="vendor_criteria_list_view" model="ir.ui.view">
+            <field name="name">vendor.criteria.list.view</field>
+            <field name="model">circles.vendor.criteria</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="description" />
+                    <field name="active" />
+                    <field name="is_required" />
+                </tree>
+            </field>
+        </record>
+
+        <act_window
+            id="vendor_criteria_action"
+            name ="Vendor Criteria"
+            res_model="circles.vendor.criteria"
+            view_id="vendor_criteria_list_view"
+            view_mode="tree,form" />
+
+        <menuitem 
+            action="vendor_criteria_action" id="menu_vendor_criteria_action_purchase"
+            parent="purchase.menu_purchase_config" sequence="2"/>
+
+        <!-- Tags list view -->
+        <record id="res_partner_category_view" model="ir.ui.view">
+            <field name="name">res.partner.category.list.view</field>
+            <field name="model">res.partner.category</field>
+            <field name="arch" type="xml">
+                <tree editable="bottom" >
+                    <field name="name"/>
+                    <field name="parent_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <act_window
+            id="res_partner_category_action"
+            name ="Tags"
+            res_model="res.partner.category"
+            view_id="res_partner_category_view"
+            view_mode="tree,form" />
+
+        <menuitem 
+            action="res_partner_category_action" id="menu_res_partner_category_action"
+            parent="purchase.menu_purchase_config" sequence="3"/>
+
+
+        <!-- Show/hide the related menu -->
+        <menuitem id="purchase.menu_procurement_management" name="Orders" parent="purchase.menu_purchase_root" sequence="1" groups="group_full_purchase_menu" />
+        <menuitem id="purchase.purchase_report" name="Reporting" parent="purchase.menu_purchase_root" groups="group_full_purchase_menu" />
+        <menuitem id="purchase.menu_purchase_products" name="Products" parent="purchase.menu_purchase_root" sequence="1" groups="group_full_purchase_menu" />
+
+        <menuitem id="purchase.menu_procurement_management_supplier_name" name="Vendors" action="res_partner_action_supplier" parent="purchase.menu_purchase_root" sequence="1"/>
+
+        <menuitem id="purchase.menu_product_pricelist_action2_purchase" name="Vendor's Product" action="product_supplierinfo_type_action" parent="purchase.menu_purchase_root" sequence="2"/>
+
+        <menuitem id="res_partner_industry_menu" name="Industry"
+            action="base.res_partner_industry_action" parent="purchase.menu_purchase_config"
+            sequence="4"/>
+
+        <menuitem name="Products" id="purchase.menu_procurement_partner_contact_form" action="purchase.product_normal_action_puchased" parent="purchase.menu_purchase_config" sequence="20"/>
+        <menuitem id="purchase.product_product_menu" name="Product Variants" action="purchase.product_product_action" parent="purchase.menu_purchase_config" sequence="21" groups="product.group_product_variant"/>
+
+        <!-- Top menu item -->
+        <menuitem name="Sourcing"
+            id="menu_purchase_root"
+            groups="purchase.group_purchase_manager,purchase.group_purchase_user"
+            action="account.res_partner_action_supplier" 
+            sequence="27"/>
+        <menuitem id="menu_procurement_management_supplier_name" name="Vendors" parent="menu_purchase_root" action="res_partner_action_supplier" sequence="1"/>
+        <menuitem id="menu_product_pricelist_action2_purchase" name="Vendor's Product" action="product_supplierinfo_type_action" parent="menu_purchase_root" sequence="2"/>
+
+        <!-- Chat group -->
+        <record model="mail.channel" id="channel_sys_notify_group">
+            <field name="name">System notification</field>
+            <field name="group_ids" eval="[(4, ref('purchase.group_purchase_manager'))]"/>
+            <field name="description">Message Notifications.</field>
+        </record>
+
+
+        <!-- Google map action list -->
+        <record model="ir.actions.server" id="print_instance">
+            <field name="name">Google map it</field>
+            <field name="model_id" ref="model_res_partner"/>
+            <field name="state">code</field>
+            <field name="code">action = model.gmap() </field>
+        </record>
+
+        <!-- wizard action on res.partner for custom Export -->
+        <template id="assets_backend" name="xls_assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/circles/static/src/js/action_manager.js"/>
+            </xpath>
+        </template>
+
+        <act_window
+            id="action_sale_order_generate_link"
+            name="Full export"
+            res_model="wizard.stock.history"
+            binding_model="res.partner"
+            binding_views="list"
+            view_mode="form"
+            target="new"
+        />
+
+        <record model='ir.ui.view' id='wizard_form'>
+            <field name="name">wizard.stock.history.form</field>
+            <field name="model">wizard.stock.history</field>
+            <field name="arch" type="xml">
+                <form string="Wizard">
+                    <!-- <group string="Warehouse">
+                        <field name="warehouse" widget="many2many_tags"/>
+                    </group>
+                    <notebook>
+                        <page string="Category">
+                            <field name="category">
+                                <tree>
+                                    <field name="name"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook> -->
+                    <footer>
+                        <button name="export_xls" type="object" default_focus="1"
+                                string="Export vendors" class="oe_highlight"
+                                context="{'xls_export':1}" icon="fa-download"/>
+                        <button string="Cancel" class="oe_link" special="cancel" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <template xml:space="preserve">
+          <t t-extend="ListView.buttons">
+            <t t-jquery="button.o_list_button_add" t-operation="before">
+                <t t-if="widget.modelName == 'res.partner'">
+                    <button id="custom_print_btn" class="btn btn-primary o_list_button_custom_print" type="button" >Map</button> 
+                </t>
+            </t>
+          </t>
+          <!-- <t t-extend="ImportView.import_button">
+          <t t-jquery="button.o_button_import" t-operation="after">           
+                <t t-if="widget.modelName == 'res.partner'">
+                    <button id="custom_print_btn" class="btn btn-primary o_list_button_custom_print" type="button" >Map</button> 
+                </t>
+              </t>
+          </t> -->
+    </template>
